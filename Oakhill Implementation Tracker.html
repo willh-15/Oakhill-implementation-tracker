@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Implementation Tracker | Oakhill Outdoor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --white:#ffffff;
+    --paper:#faf9f6;
+    --ink:#1c211f;
+    --ink-soft:#666f6a;
+    --ink-faint:#a3a9a4;
+    --line:#eae8e2;
+    --line-soft:#f2f1ec;
+    --green:#2f6b4f;
+    --green-deep:#1e4a35;
+    --green-tint:#eef4ee;
+    --green-tint-2:#dcebe0;
+    --black:#20241f;
+    --r-sm:10px;
+    --r-md:16px;
+    --r-lg:22px;
+    --r-pill:999px;
+    --shadow-sm: 0 1px 2px rgba(28,33,31,0.04);
+    --shadow-md: 0 10px 30px rgba(28,33,31,0.07);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  ::selection{background:var(--green-tint-2);}
+
+  .wrap{max-width:1520px;margin:0 auto;padding:0 32px;}
+
+  /* ---------- HERO ---------- */
+  header.hero{padding:34px 0 22px;}
+  .eyebrow{
+    font-family:'Inter',sans-serif;
+    font-size:11.5px;
+    font-weight:600;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--green);
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin-bottom:16px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:7px;height:7px;
+    background:var(--green);
+    display:inline-block;
+    border-radius:50%;
+  }
+  h1.title{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:clamp(26px, 3vw, 38px);
+    line-height:1.1;
+    letter-spacing:-0.01em;
+    margin:0 0 18px;
+    color:var(--black);
+  }
+
+  .stat-row{
+    display:grid;
+    grid-template-columns: 1.3fr repeat(4, 1fr);
+    gap:10px;
+  }
+  .stat-cell{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--r-md);
+    padding:14px 18px;
+    box-shadow:var(--shadow-sm);
+  }
+  .stat-cell.hero-stat{background:var(--green-tint);border-color:var(--green-tint-2);}
+  .stat-cell .num{
+    font-family:'Fraunces', serif;
+    font-size:24px;
+    font-weight:500;
+    color:var(--black);
+    line-height:1;
+  }
+  .stat-cell.hero-stat .num{color:var(--green-deep);}
+  .stat-cell .lbl{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    color:var(--ink-soft);
+    margin-top:8px;
+    font-weight:600;
+  }
+  .progress-track{
+    margin-top:14px;height:7px;width:100%;
+    background:var(--white);border-radius:var(--r-pill);overflow:hidden;display:flex;
+  }
+  .progress-track span{height:100%;display:block;}
+  .seg-complete{background:var(--green);}
+  .seg-progress{background:#a9cdb6;}
+  .seg-blocked{background:#8a8f8b;}
+  .seg-not{background:var(--line);}
+
+  /* ---------- CONTROLS ---------- */
+  .controls{
+    position:sticky; top:0; z-index:20;
+    background:rgba(250,249,246,0.9);
+    backdrop-filter:blur(10px);
+    padding:16px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .controls-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+  input[type="text"], select, input[type="date"]{
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    color:var(--ink);
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--r-pill);
+    padding:10px 16px;
+    outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  input[type="text"]:focus, select:focus, input[type="date"]:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--green-tint);}
+  .search-box{flex:1 1 220px; min-width:180px;}
+  .cat-filter{width:180px;padding-right:32px;}
+  .cat-filter-wrap{position:relative;}
+  .cat-key-btn{
+    position:absolute;right:6px;top:50%;transform:translateY(-50%);
+    width:22px;height:22px;border:none;background:transparent;
+    color:var(--ink-faint);cursor:pointer;font-size:11px;
+    display:flex;align-items:center;justify-content:center;border-radius:50%;
+  }
+  .cat-key-btn:hover{color:var(--ink);background:var(--paper);}
+  .cat-key-dropdown{
+    display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:30;
+    background:var(--white);border:1px solid var(--line);border-radius:var(--r-md);
+    box-shadow:var(--shadow-md);padding:8px;min-width:220px;max-height:320px;overflow-y:auto;
+  }
+  .cat-key-dropdown.open{display:block;}
+  .cat-key-item{
+    display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r-sm);
+    cursor:pointer;font-size:12.5px;color:var(--ink);
+  }
+  .cat-key-item:hover{background:var(--paper);}
+  .cat-key-item.active{background:var(--green-tint);}
+  .cat-key-swatch{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+  .cat-key-name{flex:1;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cat-key-count{color:var(--ink-faint);font-size:11px;}
+  .cat-key-empty{padding:14px 10px;color:var(--ink-faint);font-size:12px;text-align:center;}
+  .btn{
+    font-family:'Inter',sans-serif;
+    font-size:13px;font-weight:600;
+    border-radius:var(--r-pill);
+    padding:10px 20px;
+    border:1px solid var(--ink);
+    background:var(--white);
+    color:var(--ink);
+    cursor:pointer;
+    transition:all .15s ease;
+    white-space:nowrap;
+  }
+  .btn:hover{background:var(--ink);color:var(--white);}
+  .btn-primary{background:var(--green);border-color:var(--green);color:var(--white);}
+  .btn-primary:hover{background:var(--green-deep);border-color:var(--green-deep);}
+  .btn-ghost{border-color:var(--line);color:var(--ink-soft);font-weight:500;background:var(--white);}
+  .btn-ghost:hover{background:var(--paper);color:var(--ink);border-color:var(--ink-faint);}
+  .btn-danger{border-color:var(--black);color:var(--black);}
+  .btn-danger:hover{background:var(--black);color:var(--white);}
+  .spacer{flex:1;}
+
+  /* ---------- LIST (master view) ---------- */
+  .board{padding:24px 0 80px;}
+  .list-head{
+    display:grid;
+    grid-template-columns: minmax(0,1fr) 150px 128px 118px 128px 70px 34px;
+    gap:14px;
+    padding:0 22px 10px 26px;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    font-weight:600;
+    color:var(--ink-faint);
+  }
+
+  .group-heading{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.03em;
+    color:var(--green-deep);
+    margin:22px 4px 10px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .group-heading .count{
+    color:var(--ink-faint);font-weight:500;
+    background:var(--white);border:1px solid var(--line);border-radius:var(--r-pill);
+    padding:1px 9px;font-size:11px;
+  }
+  .group-heading:first-child{margin-top:0;}
+
+  .row{
+    display:grid;
+    grid-template-columns: minmax(0,1fr) 150px 128px 118px 128px 70px 34px;
+    gap:14px;
+    align-items:center;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-left:4px solid var(--line);
+    border-radius:var(--r-md);
+    padding:10px 18px 10px 22px;
+    margin-bottom:6px;
+    transition:box-shadow .15s ease, border-color .15s ease;
+    cursor:pointer;
+  }
+  .row:hover{box-shadow:var(--shadow-md);border-color:#e2e0d8;}
+  .row.pri-High{border-left-color:var(--green);}
+  .row.pri-Medium{border-left-color:#c7c2b3;}
+  .row.pri-Low{border-left-color:var(--line);}
+
+  .outcome-cluster{min-width:0;}
+  .cat-pill{
+    display:inline-block;
+    font-size:10.5px;
+    font-weight:600;
+    color:var(--green-deep);
+    background:var(--green-tint);
+    border:1px solid var(--green-tint-2);
+    border-radius:var(--r-pill);
+    padding:2px 10px;
+    margin-bottom:6px;
+  }
+  .cat-pill.empty{color:var(--ink-faint) !important;background:var(--line-soft) !important;border-color:var(--line) !important;}
+  .outcome-text{
+    font-weight:600;font-size:14px;color:var(--black);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .row:hover .outcome-text{color:var(--green-deep);}
+  .deliverable-text{
+    font-size:12px;color:var(--ink-soft);margin-top:3px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+
+  /* ---------- VIEW TOGGLE ---------- */
+  .view-toggle{
+    display:flex;background:var(--white);border:1px solid var(--line);
+    border-radius:var(--r-pill);padding:3px;gap:2px;
+  }
+  .view-btn{
+    font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;
+    border:none;background:transparent;color:var(--ink-soft);
+    padding:7px 16px;border-radius:var(--r-pill);cursor:pointer;
+  }
+  .view-btn.active{background:var(--green);color:var(--white);}
+
+  /* ---------- CALENDAR ---------- */
+  .cal-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  .cal-nav-btn{
+    width:32px;height:32px;border-radius:50%;border:1px solid var(--line);
+    background:var(--white);cursor:pointer;color:var(--ink-soft);font-size:15px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .cal-nav-btn:hover{background:var(--paper);color:var(--ink);}
+  .cal-label{font-family:'Fraunces',serif;font-size:19px;font-weight:500;color:var(--black);min-width:170px;}
+  .cal-grid{
+    display:grid;grid-template-columns:repeat(7,1fr);
+    border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;
+    background:var(--line);gap:1px;
+  }
+  .cal-dow{
+    background:var(--black);color:var(--white);
+    font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    padding:9px 12px;text-align:left;
+  }
+  .cal-cell{
+    background:var(--white);min-height:108px;padding:8px 9px;cursor:pointer;
+    display:flex;flex-direction:column;gap:5px;transition:background .12s ease;
+  }
+  .cal-cell:hover{background:var(--paper);}
+  .cal-cell.out{background:var(--paper);cursor:default;}
+  .cal-cell.out:hover{background:var(--paper);}
+  .cal-cell.today{box-shadow:inset 0 0 0 2px var(--green);}
+  .cal-daynum{font-size:12px;font-weight:600;color:var(--ink-soft);}
+  .cal-cell.out .cal-daynum{color:var(--ink-faint);}
+  .cal-cell.today .cal-daynum{color:var(--green-deep);}
+  .cal-chip{
+    font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:6px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .cal-more{font-size:10.5px;color:var(--ink-faint);font-weight:600;padding:0 2px;}
+  .day-list-item{
+    display:flex;justify-content:space-between;gap:10px;align-items:center;
+    padding:10px 0;border-bottom:1px solid var(--line-soft);cursor:pointer;
+  }
+  .day-list-item:last-child{border-bottom:none;}
+  .day-list-item:hover .day-list-name{color:var(--green-deep);}
+  .day-list-name{font-weight:600;font-size:13.5px;color:var(--black);}
+  .day-list-meta{font-size:11.5px;color:var(--ink-soft);white-space:nowrap;}
+
+  .row input[type="text"], .row input[type="date"]{
+    border-radius:var(--r-sm);padding:7px 10px;font-size:12.5px;
+    border:1px solid transparent;background:transparent;width:100%;
+    cursor:auto;
+  }
+  .row input[type="text"]:hover, .row input[type="date"]:hover{border-color:var(--line);background:var(--paper);}
+  .row input[type="text"]:focus, .row input[type="date"]:focus{border-color:var(--green);background:var(--white);box-shadow:none;}
+
+  select.pill-select{
+    width:100%;
+    border-radius:var(--r-pill);
+    padding:6px 12px;
+    font-size:12px;
+    font-weight:600;
+    border:1px solid var(--line);
+    background:var(--paper);
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  select.pill-select:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--green-tint);}
+  select.pri-select[data-p="High"]{color:var(--green-deep);background:var(--green-tint);border-color:var(--green-tint-2);}
+  select.pri-select[data-p="Medium"]{color:var(--ink);background:var(--white);}
+  select.pri-select[data-p="Low"]{color:var(--ink-faint);background:var(--white);}
+  select.status-select[data-s="Not Started"]{color:var(--ink-soft);background:var(--white);}
+  select.status-select[data-s="In Progress"]{color:#8a6d1f;background:#fbf3e2;border-color:#f1e2bd;}
+  select.status-select[data-s="Complete"]{color:var(--green-deep);background:var(--green-tint);border-color:var(--green-tint-2);}
+  select.status-select[data-s="Blocked"]{color:var(--white);background:#5b615c;border-color:#5b615c;}
+  select.status-select[data-s="On Hold"]{color:var(--ink-faint);background:var(--white);}
+
+  .edit-hint{
+    font-size:11px;color:var(--ink-faint);font-weight:600;
+    display:flex;align-items:center;justify-content:flex-end;gap:3px;
+    white-space:nowrap;
+  }
+  .row:hover .edit-hint{color:var(--green);}
+
+  .row-del{
+    background:none;border:none;cursor:pointer;color:var(--ink-faint);
+    font-size:15px;padding:6px;border-radius:50%;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    justify-self:end;
+  }
+  .row-del:hover{color:var(--white);background:var(--black);}
+
+  .empty-state{text-align:center;padding:70px 20px;color:var(--ink-soft);}
+  .empty-state .big{font-family:'Fraunces',serif;font-size:21px;color:var(--ink);margin-bottom:8px;}
+
+  /* ---------- MODAL (shared: edit + confirm) ---------- */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;
+    background:rgba(28,33,31,0.45);z-index:100;
+    align-items:flex-start;justify-content:center;
+    padding:50px 20px;overflow-y:auto;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--white);width:100%;max-width:660px;
+    border-radius:var(--r-lg);
+    box-shadow:0 30px 70px rgba(20,23,21,0.25);
+    overflow:hidden;
+  }
+  .modal.modal-sm{max-width:420px;}
+  .modal-head{
+    padding:24px 28px;border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .modal-head h2{font-family:'Fraunces',serif;font-weight:500;font-size:22px;margin:0;}
+  .modal-head button.x{
+    background:var(--paper);border:none;width:32px;height:32px;border-radius:50%;
+    cursor:pointer;color:var(--ink-soft);font-size:15px;
+  }
+  .modal-head button.x:hover{background:var(--line);color:var(--ink);}
+  .modal-body{padding:24px 28px;display:grid;grid-template-columns:1fr 1fr;gap:18px;max-height:65vh;overflow-y:auto;}
+  .modal-body .full{grid-column:1/-1;}
+  .section-label{
+    grid-column:1/-1;
+    font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--green-deep);margin-top:6px;padding-top:14px;border-top:1px solid var(--line-soft);
+  }
+  .modal-body .section-label:first-child{border-top:none;padding-top:0;margin-top:0;}
+  .f-group label{
+    display:block;font-size:11.5px;font-weight:600;letter-spacing:.03em;
+    color:var(--ink-soft);margin-bottom:7px;
+  }
+  .f-group input, .f-group select, .f-group textarea{
+    width:100%;font-size:13.5px;font-family:'Inter',sans-serif;
+    border:1px solid var(--line);padding:10px 13px;border-radius:var(--r-sm);
+    color:var(--ink);background:var(--paper);
+  }
+  .f-group textarea{resize:vertical;min-height:56px;font-family:'Inter',sans-serif;}
+  .f-group input:focus, .f-group select:focus, .f-group textarea:focus{outline:none;border-color:var(--green);background:var(--white);box-shadow:0 0 0 3px var(--green-tint);}
+  .f-group input.error, .f-group textarea.error{border-color:#b3462c;background:#fbf0ed;}
+  .f-error{font-size:11.5px;color:#b3462c;margin-top:6px;display:none;}
+  .f-error.show{display:block;}
+  .f-hint{font-size:11.5px;color:var(--ink-faint);margin-top:7px;line-height:1.6;}
+  .f-hint b{color:var(--ink-soft);font-weight:600;}
+  .tbd-btn{
+    margin-top:8px;font-size:11.5px;font-weight:600;color:var(--green-deep);
+    background:var(--green-tint);border:1px solid var(--green-tint-2);border-radius:var(--r-pill);
+    padding:5px 12px;cursor:pointer;
+  }
+  .tbd-btn:hover{background:var(--green-tint-2);}
+  .modal-foot{
+    padding:20px 28px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;gap:10px;
+    background:var(--paper);
+  }
+  .confirm-msg{font-size:14px;color:var(--ink);line-height:1.6;padding:22px 28px 6px;}
+
+  /* ---------- FOOTER ---------- */
+  footer{padding:34px 0 60px;}
+  footer .foot-card{
+    background:var(--white);border:1px solid var(--line);border-radius:var(--r-md);
+    padding:24px 26px;
+  }
+  footer .foot-note{font-size:12.5px;color:var(--ink-soft);max-width:780px;line-height:1.7;}
+  footer .foot-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+
+  .toast{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--black);color:var(--white);
+    padding:11px 22px;font-size:13px;border-radius:var(--r-pill);
+    opacity:0;pointer-events:none;transition:all .25s ease;
+    z-index:200; font-family:'Inter',sans-serif;
+    box-shadow:0 10px 30px rgba(0,0,0,0.2);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:900px){
+    .stat-row{grid-template-columns:1fr 1fr;}
+    .list-head{display:none;}
+    .row{grid-template-columns:1fr;gap:8px;padding:16px 18px;}
+    .edit-hint{display:none;}
+    .row-del{justify-self:end;}
+    .modal-body{grid-template-columns:1fr;}
+    .cal-cell{min-height:70px;}
+    .cal-dow{padding:6px 4px;font-size:9px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Oakhill Outdoor</div>
+    <h1 class="title">Master Implementation Tracker</h1>
+
+    <div class="stat-row">
+      <div class="stat-cell hero-stat">
+        <div class="num" id="statPct">0%</div>
+        <div class="lbl">Program complete</div>
+        <div class="progress-track">
+          <span class="seg-complete" id="segComplete" style="width:0%"></span>
+          <span class="seg-progress" id="segProgress" style="width:0%"></span>
+          <span class="seg-blocked" id="segBlocked" style="width:0%"></span>
+          <span class="seg-not" id="segNot" style="width:0%"></span>
+        </div>
+      </div>
+      <div class="stat-cell"><div class="num" id="statTotal">0</div><div class="lbl">Total initiatives</div></div>
+      <div class="stat-cell"><div class="num" id="statProgress">0</div><div class="lbl">In progress</div></div>
+      <div class="stat-cell"><div class="num" id="statDone">0</div><div class="lbl">Complete</div></div>
+      <div class="stat-cell"><div class="num" id="statHigh">0</div><div class="lbl">High priority open</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="wrap controls-row">
+    <div class="view-toggle">
+      <button class="view-btn active" id="viewListBtn" data-view="list">List</button>
+      <button class="view-btn" id="viewCalBtn" data-view="calendar">Calendar</button>
+    </div>
+    <input type="text" id="search" class="search-box" placeholder="Search outcomes, deliverables, owners, notes…">
+    <div class="cat-filter-wrap">
+      <input type="text" id="filterCategory" class="cat-filter" placeholder="Filter by category…">
+      <button type="button" class="cat-key-btn" id="catKeyBtn" title="Category colors">▾</button>
+      <div class="cat-key-dropdown" id="catKeyDropdown"></div>
+    </div>
+    <select id="filterStatus">
+      <option value="">All statuses</option>
+      <option>Not Started</option><option>In Progress</option><option>Complete</option><option>Blocked</option><option>On Hold</option>
+    </select>
+    <select id="filterPriority">
+      <option value="">All priorities</option>
+      <option>High</option><option>Medium</option><option>Low</option>
+    </select>
+    <select id="sortBy">
+      <option value="priority">Sort: Priority</option>
+      <option value="category">Sort: Category</option>
+      <option value="status">Sort: Status</option>
+      <option value="owner">Sort: Owner</option>
+      <option value="due">Sort: Due date</option>
+    </select>
+    <span class="spacer"></span>
+    <button class="btn btn-primary" id="addBtn">+ Add Initiative</button>
+  </div>
+</div>
+
+<main class="board">
+  <div class="wrap">
+
+    <div id="listView">
+      <div class="list-head">
+        <span>Project</span>
+        <span>Owner</span>
+        <span>Due date</span>
+        <span>Priority</span>
+        <span>Status</span>
+        <span></span>
+        <span></span>
+      </div>
+      <div id="listRoot"></div>
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="big">Nothing matches those filters</div>
+        <div>Try clearing search or filters, or add a new initiative.</div>
+      </div>
+    </div>
+
+    <div id="calendarView" style="display:none;">
+      <div class="cal-header">
+        <button class="cal-nav-btn" id="calPrev">‹</button>
+        <div class="cal-label" id="calLabel">Month Year</div>
+        <button class="cal-nav-btn" id="calNext">›</button>
+        <button class="btn btn-ghost" id="calToday">Today</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-card">
+      <div class="foot-note">
+        This tracker saves to <b>this browser only</b> (local storage) — it is not shared automatically across devices or with your team. Use <b>Export Backup</b> after each standup and share the file, or re-import it on another device to keep everyone in sync.
+      </div>
+      <div class="foot-actions">
+        <button class="btn btn-ghost" id="exportJson">Export Backup (.json)</button>
+        <button class="btn btn-ghost" id="importJsonBtn">Import Backup</button>
+        <input type="file" id="importJsonInput" accept=".json" style="display:none;">
+        <button class="btn btn-ghost" id="exportCsv">Export CSV</button>
+        <button class="btn btn-ghost" id="resetBtn">Restore Original Data</button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Edit / Add modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Add Initiative</h2>
+      <button class="x" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="section-label">The basics</div>
+      <div class="f-group full">
+        <label>Name</label>
+        <input type="text" id="f_outcome" placeholder="e.g. Better lead quality">
+        <div class="f-error" id="f_outcome_error">This needs a name before it can be saved.</div>
+      </div>
+      <div class="f-group full">
+        <label>Brief description</label>
+        <textarea id="f_deliverable" placeholder="A sentence or two on what this is — doesn't need to be exact yet"></textarea>
+        <div class="f-hint">Not sure of the exact deliverable yet? That's fine — jot down whatever you know now and flesh it out later. It just needs enough here for the team to recognize what it is.</div>
+        <button type="button" class="tbd-btn" id="tbdBtn">Not sure yet — mark deliverable as TBD</button>
+      </div>
+
+      <div class="section-label">Ownership</div>
+      <div class="f-group">
+        <label>Category</label>
+        <input type="text" id="f_category" placeholder="e.g. Sales / Estimating">
+      </div>
+      <div class="f-group">
+        <label>Owner</label>
+        <input type="text" id="f_owner" placeholder="e.g. Luc / Noah">
+      </div>
+      <div class="f-group">
+        <label>Due Date</label>
+        <input type="date" id="f_due">
+      </div>
+      <div class="f-group">
+        <label>Priority</label>
+        <select id="f_priority"><option>High</option><option>Medium</option><option>Low</option></select>
+        <div class="f-hint"><b>High</b> — time-sensitive or blocking. <b>Medium</b> — important, can wait weeks. <b>Low</b> — nice-to-have.</div>
+      </div>
+      <div class="f-group full">
+        <label>Status</label>
+        <select id="f_status">
+          <option>Not Started</option><option>In Progress</option><option>Complete</option><option>Blocked</option><option>On Hold</option>
+        </select>
+      </div>
+
+      <div class="section-label">Details</div>
+      <div class="f-group full">
+        <label>Success Metric</label>
+        <textarea id="f_metric" placeholder="e.g. 100% of leads qualified before estimating begins"></textarea>
+        <div class="f-hint"><b>Example:</b> a number or a clear yes/no you can check off — "100% of leads qualified before estimating begins," "Board updated every Wednesday," "Response time under 24 hours." Avoid vague goals like "improve communication."</div>
+      </div>
+      <div class="f-group full">
+        <label>Notes</label>
+        <textarea id="f_notes" placeholder="Context, dependencies, anything worth remembering"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost btn-danger" id="deleteBtn" style="display:none;">Delete Initiative</button>
+      <span class="spacer"></span>
+      <button class="btn btn-ghost" id="cancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic confirm modal (replaces native confirm(), which some embedded/sandboxed viewers block) -->
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h2 id="confirmTitle">Are you sure?</h2>
+      <button class="x" id="confirmClose">✕</button>
+    </div>
+    <div class="confirm-msg" id="confirmMsg">Are you sure?</div>
+    <div class="modal-foot">
+      <span class="spacer"></span>
+      <button class="btn btn-ghost" id="confirmCancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="confirmOkBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Day detail modal (calendar view) -->
+<div class="modal-overlay" id="dayModalOverlay">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h2 id="dayModalTitle">Due this day</h2>
+      <button class="x" id="dayModalClose">✕</button>
+    </div>
+    <div class="modal-body" style="grid-template-columns:1fr;max-height:60vh;">
+      <div id="dayModalList"></div>
+    </div>
+    <div class="modal-foot">
+      <span class="spacer"></span>
+      <button class="btn btn-ghost" id="dayModalCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved</div>
+
+<script>
+const STORAGE_KEY = "oakhill_implementation_tracker_v3";
+
+const DEFAULT_DATA = [
+{category:"Sales & Client",outcome:"Better lead quality",deliverable:"Create lead qualification script/questionnaire and checklist",owner:"Noah & Ben",due:"",priority:"High",status:"Not Started",metric:"100% of leads qualified before estimating begins",notes:""},
+{category:"Sales & Client",outcome:"Standard lead intake",deliverable:"Update website intake forms to capture required lead information",owner:"Noah & Ben",due:"",priority:"Medium",status:"Not Started",metric:"Every lead has all required information on intake",notes:""},
+{category:"Sales & Client",outcome:"Reduce wasted estimating time",deliverable:"Introduce budget alignment/screening step before estimating",owner:"Noah",due:"",priority:"High",status:"Not Started",metric:"Fewer estimates lost or reworked due to budget mismatch",notes:""},
+{category:"Operations",outcome:"Office task visibility",deliverable:"Build office Kanban board + visual SOP posted next to board",owner:"Will",due:"",priority:"Medium",status:"Not Started",metric:"Board actively used in daily management meeting",notes:"Related to the office/field Kanban board build below — confirm this is the same initiative before assigning duplicate work."},
+{category:"Operations",outcome:"Weekly management visibility",deliverable:"Build weekly huddle board",owner:"Will",due:"",priority:"Medium",status:"Not Started",metric:"Board updated every Wednesday",notes:"Related to the Wednesday all-team board and Friday management board below — likely the same deliverable, confirm before duplicating."},
+{category:"Continuous Improvement",outcome:"Standard management system",deliverable:"Build CTQ (Critical to Quality) templates for major handoffs",owner:"Will / Luc",due:"",priority:"High",status:"Not Started",metric:"All major handoffs documented with CTQ criteria",notes:"Ties directly to the process map / CTQ tree work below — treat as one initiative once confirmed."},
+{category:"Sales & Client",outcome:"Faster client communication",deliverable:"Create canned emails/templates for common client touchpoints",owner:"Ben",due:"",priority:"Medium",status:"Not Started",metric:"Response time under 24 hours",notes:""},
+{category:"Sales & Client",outcome:"Better estimating",deliverable:"Create estimating checklist",owner:"Noah & Ben",due:"",priority:"High",status:"Not Started",metric:"Estimates contain all required information before going out",notes:""},
+{category:"Operations",outcome:"Better project handoff",deliverable:"Create standardized turnover package (sales → production)",owner:"Will / Luc",due:"",priority:"High",status:"Not Started",metric:"No missing information at handoff to production",notes:""},
+{category:"Continuous Improvement",outcome:"Continuous improvement",deliverable:"Create root cause review process",owner:"Will",due:"",priority:"High",status:"Not Started",metric:"Issues tracked and resolved on a monthly cadence",notes:"Overlaps with the CI idea board + weekly management \"root cause discussion\" agenda item below."},
+{category:"Leadership & Strategy",outcome:"Leadership system",deliverable:"Define company KPIs and scoreboards",owner:"Harrington / Tidal CFO",due:"",priority:"High",status:"Not Started",metric:"KPIs reviewed weekly",notes:"Directly overlaps with the SQDCM scorecard framework below — treat as one initiative."},
+{category:"Operations",outcome:"Process ownership",deliverable:"Assign a named owner for every business process",owner:"Luc",due:"",priority:"High",status:"Not Started",metric:"100% of documented processes have an assigned owner",notes:""},
+{category:"Training",outcome:"Training",deliverable:"Train managers and staff on new processes as they're built",owner:"Luc / Will",due:"",priority:"Medium",status:"Not Started",metric:"Training completed and logged for each new/changed process",notes:""},
+{category:"Continuous Improvement",outcome:"Audit",deliverable:"Create a monthly process audit",owner:"Will",due:"",priority:"Medium",status:"Not Started",metric:"Processes audited monthly; findings logged",notes:""},
+{category:"Finance",outcome:"Accurate annual budget & cash visibility",deliverable:"Rebuild annual budget using zero-based budgeting (start every line at $0, justify each number, break out by month, document assumption notes)",owner:"Noah & Dylan (Tidal CFO)",due:"",priority:"High",status:"In Progress",metric:"Budget approved with a documented assumption for every line item; sub-contractor spend tracked to budget weekly",notes:"Zero-based approach agreed — start every line at $0 and justify it, rather than carrying forward last year's numbers. Feeds the existing weekly cash-basis/accrual reporting Tidal already delivers."},
+{category:"Finance",outcome:"Understand true job profitability",deliverable:"Build gross-profit-per-man-hour (\"throughput per hour\") tracking by job and division",owner:"Luc / Noah / Dave (Harrington)",due:"",priority:"High",status:"Not Started",metric:"Target throughput-per-hour benchmark defined and tracked per job (discussed range ~$150–190/hr)",notes:"Throughput matters more than raw revenue per man-hour. ~$150–190/hr range discussed as a starting benchmark."},
+{category:"Sales & Client",outcome:"Accurate sales pipeline visibility",deliverable:"Tie LMN sold-estimate values to HubSpot lead records to forecast pipeline revenue",owner:"Noah / Ben",due:"",priority:"Medium",status:"In Progress",metric:"Pipeline revenue forecast reconciles LMN open opportunities to HubSpot leads",notes:"LMN division data is only reliably accurate for Design Build — Carpentry and Landscape Management are not."},
+{category:"Sales & Client",outcome:"Reliable pipeline / opportunity data",deliverable:"Clean up LMN estimate hygiene — close out duplicate or stale estimates so the open opportunity list reflects the true pipeline",owner:"Noah",due:"",priority:"Medium",status:"Not Started",metric:"Open opportunity list free of duplicate/stale quotes; close rate math is trustworthy",notes:"Duplicate quotes have been flagged before as skewing the pipeline total — needs a regular clean-up pass."},
+{category:"Operations",outcome:"More disciplined daily standups",deliverable:"Standardize the daily standup question set: what was accomplished today / plan for tomorrow — add a required follow-up of \"did today match yesterday's plan? If not, why?\"",owner:"Luc",due:"",priority:"Medium",status:"Not Started",metric:"Plan-vs-actual variance captured daily in Connect Team for every crew",notes:"Small process tweak to start building root-cause data over time without adding meeting time."},
+{category:"Operations",outcome:"Whole-company visibility & engagement",deliverable:"Launch weekly all-team Wednesday huddle using the SQDCM framework (Safety, Quality, Delivery, Cost, Morale)",owner:"Luc (Meeting Lead) / Jack",due:"",priority:"High",status:"In Progress",metric:"~30–35 min meeting held every Wednesday; SQDCM scorecard reviewed live",notes:"Modeled on a SQDCM huddle board format. Replaces the old all-hands Wednesday meeting that ran long and lost focus."},
+{category:"Operations",outcome:"Strategic (non-reactive) management rhythm",deliverable:"Launch a weekly management meeting (~1 hr, Fridays): wins, KPI review, teaching moment, root cause discussion, financial KPI review with Dylan/Tidal, look-ahead, action items",owner:"Luc",due:"",priority:"High",status:"Not Started",metric:"Held weekly without fail; every action item has an owner and is closed the following week",notes:"Purpose is to zoom out from day-to-day firefighting to weekly trends."},
+{category:"Operations",outcome:"Longer-horizon process visibility",deliverable:"Launch a monthly management review (~2 hrs): review Element/Connect Team trends, monthly process goals vs. actual",owner:"Luc / Dylan",due:"",priority:"Medium",status:"Not Started",metric:"Held monthly; trend data reviewed and converted into concrete next-month actions",notes:"Time explicitly blocked so it doesn't get crowded out by daily ops."},
+{category:"Operations",outcome:"Clear meeting accountability",deliverable:"Formalize the \"Meeting Lead\" role — owns the agenda, keeps meetings on time, drives action items to closure",owner:"Luc",due:"",priority:"Medium",status:"Not Started",metric:"Every recurring meeting has a named lead and a written agenda",notes:"Luc identified as Meeting Lead given his operations manager role."},
+{category:"Operations",outcome:"Physical visibility of the management system",deliverable:"Build 3 physical visual boards: Wednesday all-team SQDCM board, Friday management board, and a site trailer daily board",owner:"Luc / Jack",due:"",priority:"Medium",status:"Not Started",metric:"All 3 boards in active use and updated on their respective cadence",notes:"Current trailer board is a piece of Bristol board — fine to start there and upgrade to a whiteboard once the format is proven."},
+{category:"Operations",outcome:"Task visibility for office & field",deliverable:"Build 2 Kanban boards (office tasks / field tasks), color-coded by task type (e.g. deficiency vs. billable work)",owner:"Luc / Noah",due:"",priority:"Medium",status:"In Progress",metric:"Boards actively used; task backlog visible and prioritized by type",notes:"Already partially underway — see note on \"Office task visibility\" above for possible duplication."},
+{category:"Continuous Improvement",outcome:"Frontline-driven problem solving",deliverable:"Stand up a Continuous Improvement idea board — crews log problem + suggested solution (not just the problem) at the Wednesday huddle",owner:"Luc",due:"",priority:"High",status:"Not Started",metric:"Ideas logged weekly and reviewed at the Friday management meeting",notes:"Goal: staff self-identify and propose fixes rather than every issue escalating to Luc."},
+{category:"Continuous Improvement",outcome:"Engagement & culture around CI",deliverable:"Launch a \"Kaizen of the Week\" incentive — lunch or gift card for the crew with the best implemented waste-elimination idea, tracked on a visible scoreboard",owner:"Luc / Jack",due:"",priority:"Low",status:"Not Started",metric:"Weekly winner selected and posted; participation trending up month over month",notes:"Team was enthusiastic about the competitive/gamified angle."},
+{category:"Continuous Improvement",outcome:"Field-level root cause capture",deliverable:"Add a daily field task recap to Element/Connect Team notes: completed vs. plan, what slowed the day, one thing that went better than expected, one thing not planned for, one thing to plan for next time",owner:"Jack",due:"",priority:"Medium",status:"Not Started",metric:"Captured on every job daily; reviewed at the weekly/monthly management review",notes:"Much easier to capture daily than reconstructing the week from memory before a meeting."},
+{category:"Continuous Improvement",outcome:"Formalized process handoffs",deliverable:"Expand the master start-to-finish process map and build CTQ trees for key handoffs (e.g. Ben → Noah lead handoff)",owner:"Luc / Harrington",due:"",priority:"High",status:"Not Started",metric:"Key handoffs documented with explicit CTQ criteria (accuracy, timeliness targets, etc.)",notes:"Working session planned to work through the production line map end to end."},
+{category:"Continuous Improvement",outcome:"Diagnosed CI maturity & roadmap",deliverable:"Complete the Harrington CI Culture Assessment (Strategy, Projects, Resources, Training, Culture) and build a 12–24 month Operational Excellence roadmap",owner:"Luc / Harrington (Gary)",due:"2026-08-05",priority:"High",status:"Not Started",metric:"Assessment completed; roadmap published with near-term and longer-term workstreams",notes:"~4–4.5 hr workshop. Strategy, Culture and Projects are the areas Oakhill owns directly; Resources and Training are areas Harrington supports."},
+{category:"Leadership & Strategy",outcome:"Documented mission, vision & values",deliverable:"Answer and align on 4 core questions — why do we exist, who do we serve, what value do we provide, what must we never compromise — across leadership and supervisors, then synthesize into a mission/vision/values statement",owner:"Luc, Noah, Jack, Ben + supervisors",due:"",priority:"High",status:"Not Started",metric:"Documented mission/vision/values shared company-wide",notes:"Answer independently first, then compare themes to find common ground."},
+{category:"Training",outcome:"Build internal CI capability",deliverable:"Enroll 1–2 staff in Lean Six Sigma Green Belt training (3–6 month course, delivered remotely, ~25 hrs content, includes a live improvement project)",owner:"Luc",due:"",priority:"Medium",status:"Not Started",metric:"Green Belt certified; the associated project delivers a quantified, documented saving",notes:"~$5,000/person, may reduce with more participants. Candidate projects: trailer/equipment inventory & tracking system, management dashboard build."},
+{category:"Training",outcome:"Company-wide Lean fluency",deliverable:"Deliver Yellow Belt training (2-day course) to the full company, run as 2 cohorts over the winter to avoid pulling crews off active sites",owner:"Luc",due:"",priority:"Medium",status:"Not Started",metric:"100% of staff Yellow Belt trained",notes:"~$200–250/person. Run in winter to avoid pulling crews off active sites."},
+{category:"Operations",outcome:"Data-driven trend analysis",deliverable:"Grant Harrington read access to Connect Team so standup data can be exported and mined for recurring themes",owner:"Luc",due:"",priority:"Low",status:"Not Started",metric:"Harrington able to export and analyze Connect Team data directly",notes:""}
+];
+
+function uid(){return 'id_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);}
+
+let data = [];
+
+// One-time migration: earlier versions used more granular categories.
+// This maps anything still tagged with an old label to the new consolidated
+// set, without touching due dates, statuses, notes, or anything else saved.
+const CATEGORY_MIGRATION = {
+  "Sales / Estimating": "Sales & Client",
+  "Client Communication": "Sales & Client",
+  "Ops / Visual Management": "Operations",
+  "Ops / Meeting Cadence": "Operations",
+  "Ops / Process": "Operations",
+  "Ops / Daily Management": "Operations",
+  "Ops / Systems": "Operations",
+  "Leadership / Strategy": "Leadership & Strategy"
+};
+function migrateCategories(list){
+  list.forEach(item=>{
+    const mapped = CATEGORY_MIGRATION[(item.category||'').trim()];
+    if(mapped) item.category = mapped;
+  });
+  return list;
+}
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      data = migrateCategories(JSON.parse(raw));
+      saveData();
+      return;
+    }
+  }catch(e){ /* storage unavailable — fall through to defaults, in-memory only */ }
+  data = DEFAULT_DATA.map(d=>({...d, id: uid()}));
+  saveData();
+}
+function saveData(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){ /* ignore if storage unavailable */ }
+}
+
+let editingId = null;
+
+const els = {
+  search: document.getElementById('search'),
+  filterCategory: document.getElementById('filterCategory'),
+  filterStatus: document.getElementById('filterStatus'),
+  filterPriority: document.getElementById('filterPriority'),
+  sortBy: document.getElementById('sortBy'),
+  listRoot: document.getElementById('listRoot'),
+  emptyState: document.getElementById('emptyState'),
+};
+
+function escapeHtml(s){
+  if(s===undefined||s===null) return '';
+  return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// ---- category colors: deterministic, so the same category always gets the same color ----
+const CATEGORY_PALETTE = [
+  {bg:"#eef4ee", border:"#dcebe0", text:"#1e4a35"}, // green
+  {bg:"#eef2f8", border:"#d7e2f0", text:"#2c4a70"}, // slate blue
+  {bg:"#f8f1e6", border:"#eeddc2", text:"#7a5a1f"}, // warm tan
+  {bg:"#f5eef7", border:"#e5d3ea", text:"#5b3b6b"}, // plum
+  {bg:"#eef7f5", border:"#d2ece6", text:"#20695a"}, // teal
+  {bg:"#f8eeee", border:"#eed6d6", text:"#7a3232"}, // brick
+  {bg:"#f3f3e9", border:"#e3e3cd", text:"#565c34"}, // olive
+  {bg:"#eef0f8", border:"#d8ddf0", text:"#38416e"}, // indigo
+  {bg:"#f8f2ec", border:"#eedecb", text:"#7a4f28"}, // clay
+  {bg:"#eef8f6", border:"#d0ece8", text:"#1c6b60"}, // seafoam
+  {bg:"#f7eef4", border:"#ecd6e4", text:"#7a3560"}, // berry
+  {bg:"#f2f4ee", border:"#e0e6d2", text:"#4a5a2e"}  // moss
+];
+function hashStr(s){
+  let h = 0;
+  for(let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) | 0; }
+  return Math.abs(h);
+}
+function categoryColor(cat){
+  if(!cat) return null;
+  return CATEGORY_PALETTE[hashStr(cat.trim().toLowerCase()) % CATEGORY_PALETTE.length];
+}
+function categoryPillHtml(cat){
+  if(!cat) return `<span class="cat-pill empty">No category</span>`;
+  const c = categoryColor(cat);
+  return `<span class="cat-pill" style="background:${c.bg};border-color:${c.border};color:${c.text};">${escapeHtml(cat)}</span>`;
+}
+
+const PRI_ORDER = {High:0, Medium:1, Low:2};
+const STATUS_ORDER = {"In Progress":0,"Not Started":1,"Blocked":2,"On Hold":3,"Complete":4};
+
+function getFiltered(){
+  const q = els.search.value.trim().toLowerCase();
+  const fc = els.filterCategory.value.trim().toLowerCase();
+  const fs = els.filterStatus.value;
+  const fp = els.filterPriority.value;
+  let list = data.filter(d=>{
+    if(fc && !(d.category||'').toLowerCase().includes(fc)) return false;
+    if(fs && d.status!==fs) return false;
+    if(fp && d.priority!==fp) return false;
+    if(q){
+      const hay = [d.outcome,d.deliverable,d.owner,d.notes,d.metric,d.category].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  const sortBy = els.sortBy.value;
+  list.sort((a,b)=>{
+    if(sortBy==='priority') return PRI_ORDER[a.priority]-PRI_ORDER[b.priority];
+    if(sortBy==='category') return (a.category||'').localeCompare(b.category||'');
+    if(sortBy==='status') return STATUS_ORDER[a.status]-STATUS_ORDER[b.status];
+    if(sortBy==='owner') return (a.owner||'').localeCompare(b.owner||'');
+    if(sortBy==='due') return (a.due||'9999').localeCompare(b.due||'9999');
+    return 0;
+  });
+  return list;
+}
+
+function render(){
+  const list = getFiltered();
+  els.listRoot.innerHTML = '';
+  els.emptyState.style.display = list.length ? 'none' : 'block';
+
+  const groupBy = els.sortBy.value === 'category' ? 'category' : null;
+  let lastGroup = null;
+
+  list.forEach(item=>{
+    if(groupBy){
+      const g = item[groupBy] || '(no category)';
+      if(g!==lastGroup){
+        lastGroup = g;
+        const count = list.filter(x=>(x[groupBy]||'(no category)')===g).length;
+        const h = document.createElement('div');
+        h.className='group-heading';
+        h.innerHTML = `${escapeHtml(g)} <span class="count">${count}</span>`;
+        els.listRoot.appendChild(h);
+      }
+    }
+    els.listRoot.appendChild(renderRow(item));
+  });
+
+  updateStats();
+}
+
+function renderRow(item){
+  const row = document.createElement('div');
+  row.className = `row pri-${item.priority}`;
+  row.dataset.id = item.id;
+  const catHtml = categoryPillHtml(item.category);
+  row.innerHTML = `
+    <div class="outcome-cluster">
+      ${catHtml}
+      <div class="outcome-text" title="${escapeHtml(item.outcome)}">${escapeHtml(item.outcome)}</div>
+      ${item.deliverable ? `<div class="deliverable-text" title="${escapeHtml(item.deliverable)}">${escapeHtml(item.deliverable)}</div>` : ''}
+    </div>
+    <div><input type="text" value="${escapeHtml(item.owner)}" data-field="owner" data-id="${item.id}" placeholder="Owner…"></div>
+    <div><input type="date" value="${item.due||''}" data-field="due" data-id="${item.id}"></div>
+    <div>
+      <select class="pill-select pri-select" data-field="priority" data-id="${item.id}" data-p="${item.priority}">
+        ${['High','Medium','Low'].map(p=>`<option ${p===item.priority?'selected':''}>${p}</option>`).join('')}
+      </select>
+    </div>
+    <div>
+      <select class="pill-select status-select" data-field="status" data-id="${item.id}" data-s="${item.status}">
+        ${['Not Started','In Progress','Complete','Blocked','On Hold'].map(s=>`<option ${s===item.status?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="edit-hint">Edit ›</div>
+    <button class="row-del" data-del="${item.id}" title="Delete">✕</button>
+  `;
+  return row;
+}
+
+function updateStats(){
+  const total = data.length;
+  const complete = data.filter(d=>d.status==='Complete').length;
+  const progress = data.filter(d=>d.status==='In Progress').length;
+  const blocked = data.filter(d=>d.status==='Blocked').length;
+  const notStarted = total - complete - progress - blocked;
+  const highOpen = data.filter(d=>d.priority==='High' && d.status!=='Complete').length;
+  const pct = total ? Math.round((complete/total)*100) : 0;
+
+  document.getElementById('statPct').textContent = pct+'%';
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statProgress').textContent = progress;
+  document.getElementById('statDone').textContent = complete;
+  document.getElementById('statHigh').textContent = highOpen;
+
+  document.getElementById('segComplete').style.width = (total?complete/total*100:0)+'%';
+  document.getElementById('segProgress').style.width = (total?progress/total*100:0)+'%';
+  document.getElementById('segBlocked').style.width = (total?blocked/total*100:0)+'%';
+  document.getElementById('segNot').style.width = (total?notStarted/total*100:0)+'%';
+}
+
+// ---- view toggle: List <-> Calendar ----
+let currentView = 'list';
+const listViewEl = document.getElementById('listView');
+const calendarViewEl = document.getElementById('calendarView');
+const viewListBtn = document.getElementById('viewListBtn');
+const viewCalBtn = document.getElementById('viewCalBtn');
+const sortBySelect = document.getElementById('sortBy');
+
+function setView(v){
+  currentView = v;
+  viewListBtn.classList.toggle('active', v==='list');
+  viewCalBtn.classList.toggle('active', v==='calendar');
+  listViewEl.style.display = v==='list' ? '' : 'none';
+  calendarViewEl.style.display = v==='calendar' ? '' : 'none';
+  sortBySelect.style.display = v==='list' ? '' : 'none';
+  renderActive();
+}
+viewListBtn.addEventListener('click', ()=>setView('list'));
+viewCalBtn.addEventListener('click', ()=>setView('calendar'));
+
+function renderActive(){
+  if(currentView==='calendar'){ renderCalendar(); }
+  else { render(); }
+  updateStats();
+}
+
+// ---- calendar ----
+let calDate = new Date();
+calDate.setDate(1);
+const calLabel = document.getElementById('calLabel');
+const calGrid = document.getElementById('calGrid');
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function isoDate(y,m,d){
+  const mm = String(m+1).padStart(2,'0');
+  const dd = String(d).padStart(2,'0');
+  return `${y}-${mm}-${dd}`;
+}
+
+function renderCalendar(){
+  const y = calDate.getFullYear();
+  const m = calDate.getMonth();
+  calLabel.textContent = calDate.toLocaleString('default',{month:'long', year:'numeric'});
+
+  const filtered = getFiltered(); // respects search/category/status/priority, ignores sort
+  const byDate = {};
+  filtered.forEach(item=>{
+    if(item.due){
+      (byDate[item.due] = byDate[item.due] || []).push(item);
+    }
+  });
+
+  const firstOfMonth = new Date(y, m, 1);
+  const startOffset = firstOfMonth.getDay(); // 0=Sun
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const daysInPrevMonth = new Date(y, m, 0).getDate();
+
+  const todayIso = isoDate(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+
+  let cellsHtml = DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+
+  const totalCells = 42;
+  for(let i=0;i<totalCells;i++){
+    const dayOffset = i - startOffset + 1;
+    let cellY=y, cellM=m, cellD, outOfMonth=false;
+    if(dayOffset < 1){
+      cellD = daysInPrevMonth + dayOffset;
+      cellM = m-1; if(cellM<0){cellM=11;cellY=y-1;}
+      outOfMonth = true;
+    } else if(dayOffset > daysInMonth){
+      cellD = dayOffset - daysInMonth;
+      cellM = m+1; if(cellM>11){cellM=0;cellY=y+1;}
+      outOfMonth = true;
+    } else {
+      cellD = dayOffset;
+    }
+    const iso = isoDate(cellY, cellM, cellD);
+    const items = outOfMonth ? [] : (byDate[iso] || []);
+    const isToday = iso === todayIso;
+
+    let chipsHtml = '';
+    if(items.length){
+      const shown = items.slice(0,2);
+      shown.forEach(it=>{
+        const c = categoryColor(it.category) || CATEGORY_PALETTE[0];
+        chipsHtml += `<div class="cal-chip" data-open-item="${it.id}" style="background:${c.bg};color:${c.text};" title="${escapeHtml(it.outcome)}">${escapeHtml(it.outcome)}</div>`;
+      });
+      if(items.length > 2){
+        chipsHtml += `<div class="cal-more" data-open-day="${iso}">+${items.length-2} more</div>`;
+      }
+    }
+
+    cellsHtml += `<div class="cal-cell${outOfMonth?' out':''}${isToday?' today':''}" data-day="${iso}" data-has-items="${items.length>0}">
+      <div class="cal-daynum">${cellD}</div>
+      ${chipsHtml}
+    </div>`;
+  }
+  calGrid.innerHTML = cellsHtml;
+}
+
+document.getElementById('calPrev').addEventListener('click', ()=>{ calDate.setMonth(calDate.getMonth()-1); renderCalendar(); });
+document.getElementById('calNext').addEventListener('click', ()=>{ calDate.setMonth(calDate.getMonth()+1); renderCalendar(); });
+document.getElementById('calToday').addEventListener('click', ()=>{ calDate = new Date(); calDate.setDate(1); renderCalendar(); });
+
+calGrid.addEventListener('click', e=>{
+  const chip = e.target.closest('[data-open-item]');
+  if(chip){ openModal(chip.dataset.openItem); return; }
+  const more = e.target.closest('[data-open-day]');
+  if(more){ openDayModal(more.dataset.openDay); return; }
+  const cell = e.target.closest('.cal-cell');
+  if(cell && cell.classList.contains('out')) return;
+  if(cell && cell.dataset.hasItems === 'true'){ openDayModal(cell.dataset.day); return; }
+  if(cell && cell.dataset.hasItems === 'false'){ openModal(null, {due: cell.dataset.day}); return; }
+});
+
+// ---- day detail modal ----
+const dayModalOverlay = document.getElementById('dayModalOverlay');
+const dayModalTitle = document.getElementById('dayModalTitle');
+const dayModalList = document.getElementById('dayModalList');
+
+function openDayModal(iso){
+  const items = data.filter(d=>d.due===iso);
+  const d = new Date(iso+'T00:00:00');
+  dayModalTitle.textContent = d.toLocaleDateString('default',{weekday:'long', month:'long', day:'numeric'});
+  dayModalList.innerHTML = items.map(it=>`
+    <div class="day-list-item" data-open-item="${it.id}">
+      <span class="day-list-name">${escapeHtml(it.outcome)}</span>
+      <span class="day-list-meta">${escapeHtml(it.owner||'')} · ${escapeHtml(it.status)}</span>
+    </div>
+  `).join('') || '<div style="color:var(--ink-faint);font-size:13px;padding:10px 0;">Nothing due this day.</div>';
+  dayModalOverlay.classList.add('open');
+}
+function closeDayModal(){ dayModalOverlay.classList.remove('open'); }
+document.getElementById('dayModalClose').addEventListener('click', closeDayModal);
+document.getElementById('dayModalCloseBtn').addEventListener('click', closeDayModal);
+dayModalOverlay.addEventListener('click', e=>{ if(e.target===dayModalOverlay) closeDayModal(); });
+dayModalList.addEventListener('click', e=>{
+  const row = e.target.closest('[data-open-item]');
+  if(row){ closeDayModal(); openModal(row.dataset.openItem); }
+});
+
+// ---- generic in-page confirm dialog (does NOT rely on window.confirm, which
+// some embedded/sandboxed viewers silently block, making buttons look dead) ----
+const confirmOverlay = document.getElementById('confirmOverlay');
+const confirmMsg = document.getElementById('confirmMsg');
+const confirmTitle = document.getElementById('confirmTitle');
+const confirmOkBtn = document.getElementById('confirmOkBtn');
+const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+const confirmCloseBtn = document.getElementById('confirmClose');
+
+function showConfirm(message, opts){
+  opts = opts || {};
+  return new Promise(resolve=>{
+    confirmTitle.textContent = opts.title || 'Are you sure?';
+    confirmMsg.textContent = message;
+    confirmOkBtn.textContent = opts.okLabel || 'Confirm';
+    confirmOverlay.classList.add('open');
+
+    function cleanup(result){
+      confirmOverlay.classList.remove('open');
+      confirmOkBtn.removeEventListener('click', onOk);
+      confirmCancelBtn.removeEventListener('click', onCancel);
+      confirmCloseBtn.removeEventListener('click', onCancel);
+      confirmOverlay.removeEventListener('click', onOverlay);
+      resolve(result);
+    }
+    function onOk(){ cleanup(true); }
+    function onCancel(){ cleanup(false); }
+    function onOverlay(e){ if(e.target===confirmOverlay) cleanup(false); }
+
+    confirmOkBtn.addEventListener('click', onOk);
+    confirmCancelBtn.addEventListener('click', onCancel);
+    confirmCloseBtn.addEventListener('click', onCancel);
+    confirmOverlay.addEventListener('click', onOverlay);
+  });
+}
+
+async function deleteInitiative(id){
+  const ok = await showConfirm('Delete this initiative? This cannot be undone.', {title:'Delete initiative?', okLabel:'Delete'});
+  if(!ok) return;
+  data = data.filter(d=>d.id!==id);
+  saveData(); renderActive(); toast('Deleted');
+}
+
+// ---- inline field edits (owner, due date, priority, status) ----
+els.listRoot.addEventListener('change', e=>{
+  const field = e.target.dataset.field;
+  const id = e.target.dataset.id;
+  if(!field || !id) return;
+  const item = data.find(d=>d.id===id);
+  if(!item) return;
+  item[field] = e.target.value;
+  saveData();
+  if(field==='status' || field==='priority'){ renderActive(); }
+  else { updateStats(); }
+  toast('Saved');
+});
+
+// clicking an input/select shouldn't also open the modal
+els.listRoot.addEventListener('click', e=>{
+  const delBtn = e.target.closest('[data-del]');
+  if(delBtn){
+    deleteInitiative(delBtn.dataset.del);
+    return;
+  }
+  if(e.target.closest('input, select')) return;
+  const row = e.target.closest('.row');
+  if(row && row.dataset.id){ openModal(row.dataset.id); }
+});
+
+// ---- filters ----
+[els.search, els.filterCategory, els.filterStatus, els.filterPriority, els.sortBy].forEach(el=>{
+  el.addEventListener('input', renderActive);
+  el.addEventListener('change', renderActive);
+});
+
+// ---- category color key dropdown ----
+const catKeyBtn = document.getElementById('catKeyBtn');
+const catKeyDropdown = document.getElementById('catKeyDropdown');
+
+function buildCatKey(){
+  const counts = {};
+  data.forEach(d=>{
+    const c = (d.category||'').trim();
+    if(c) counts[c] = (counts[c]||0) + 1;
+  });
+  const cats = Object.keys(counts).sort((a,b)=>a.localeCompare(b));
+  const activeFilter = els.filterCategory.value.trim().toLowerCase();
+
+  if(!cats.length){
+    catKeyDropdown.innerHTML = `<div class="cat-key-empty">No categories yet</div>`;
+    return;
+  }
+
+  let html = `<div class="cat-key-item${!activeFilter?' active':''}" data-cat="">
+    <span class="cat-key-swatch" style="background:var(--ink-faint);"></span>
+    <span class="cat-key-name">All categories</span>
+  </div>`;
+  cats.forEach(c=>{
+    const color = categoryColor(c);
+    const isActive = activeFilter && c.toLowerCase()===activeFilter;
+    html += `<div class="cat-key-item${isActive?' active':''}" data-cat="${escapeHtml(c)}">
+      <span class="cat-key-swatch" style="background:${color.text};"></span>
+      <span class="cat-key-name">${escapeHtml(c)}</span>
+      <span class="cat-key-count">${counts[c]}</span>
+    </div>`;
+  });
+  catKeyDropdown.innerHTML = html;
+}
+
+catKeyBtn.addEventListener('click', e=>{
+  e.stopPropagation();
+  buildCatKey();
+  catKeyDropdown.classList.toggle('open');
+});
+catKeyDropdown.addEventListener('click', e=>{
+  const item = e.target.closest('.cat-key-item');
+  if(!item) return;
+  els.filterCategory.value = item.dataset.cat;
+  catKeyDropdown.classList.remove('open');
+  renderActive();
+});
+document.addEventListener('click', e=>{
+  if(!catKeyDropdown.contains(e.target) && e.target!==catKeyBtn){
+    catKeyDropdown.classList.remove('open');
+  }
+});
+
+// ---- edit / add modal ----
+const overlay = document.getElementById('modalOverlay');
+const modalTitle = document.getElementById('modalTitle');
+const deleteBtn = document.getElementById('deleteBtn');
+const fields = ['outcome','deliverable','category','owner','due','priority','status','metric','notes'];
+
+function openModal(id, prefill){
+  editingId = id || null;
+  const item = id ? data.find(d=>d.id===id) : null;
+  modalTitle.textContent = item ? 'Edit Initiative' : 'Add Initiative';
+  deleteBtn.style.display = item ? 'inline-block' : 'none';
+  fields.forEach(f=>{
+    document.getElementById('f_'+f).value = item ? (item[f]||'') : (f==='priority'?'Medium':f==='status'?'Not Started':'');
+  });
+  if(!item && prefill){
+    Object.keys(prefill).forEach(f=>{
+      const el = document.getElementById('f_'+f);
+      if(el) el.value = prefill[f];
+    });
+  }
+  document.getElementById('f_outcome').classList.remove('error');
+  document.getElementById('f_outcome_error').classList.remove('show');
+  overlay.classList.add('open');
+  document.getElementById('f_outcome').focus();
+}
+function closeModal(){ overlay.classList.remove('open'); editingId=null; }
+
+document.getElementById('addBtn').addEventListener('click', ()=>openModal(null));
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+document.getElementById('tbdBtn').addEventListener('click', ()=>{
+  const f = document.getElementById('f_deliverable');
+  if(!f.value.trim()){ f.value = 'TBD — deliverable to be defined with the team.'; }
+});
+overlay.addEventListener('click', e=>{ if(e.target===overlay) closeModal(); });
+
+document.getElementById('saveBtn').addEventListener('click', ()=>{
+  const outcomeField = document.getElementById('f_outcome');
+  const outcome = outcomeField.value.trim();
+  if(!outcome){
+    outcomeField.classList.add('error');
+    document.getElementById('f_outcome_error').classList.add('show');
+    outcomeField.focus();
+    return;
+  }
+  const payload = {};
+  fields.forEach(f=>{ payload[f] = document.getElementById('f_'+f).value; });
+
+  if(editingId){
+    const item = data.find(d=>d.id===editingId);
+    Object.assign(item, payload);
+  } else {
+    data.push({id: uid(), ...payload});
+  }
+  saveData(); renderActive(); closeModal(); toast('Saved');
+});
+
+deleteBtn.addEventListener('click', async ()=>{
+  if(!editingId) return;
+  const ok = await showConfirm('Delete this initiative? This cannot be undone.', {title:'Delete initiative?', okLabel:'Delete'});
+  if(!ok) return;
+  data = data.filter(d=>d.id!==editingId);
+  saveData(); renderActive(); closeModal(); toast('Deleted');
+});
+
+// ---- export / import / reset ----
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+document.getElementById('exportJson').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `oakhill-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  toast('Backup downloaded');
+});
+
+document.getElementById('importJsonBtn').addEventListener('click', ()=>{
+  document.getElementById('importJsonInput').click();
+});
+document.getElementById('importJsonInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async evt=>{
+    try{
+      const parsed = JSON.parse(evt.target.result);
+      if(!Array.isArray(parsed)) throw new Error('bad format');
+      const ok = await showConfirm(`Import ${parsed.length} initiatives? This will replace everything currently in this tracker.`, {title:'Import backup?', okLabel:'Import'});
+      if(!ok) return;
+      data = parsed.map(d=>({...d, id: d.id||uid()}));
+      saveData(); renderActive(); toast('Backup imported');
+    }catch(err){
+      toast('Could not read that file — is it a backup exported from this tracker?');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.getElementById('exportCsv').addEventListener('click', ()=>{
+  const headers = ['Category','Outcome','Implementation / Deliverable','Owner','Due Date','Priority','Status','Success Metric','Notes'];
+  const csvRows = [headers.join(',')];
+  data.forEach(d=>{
+    const row = [d.category,d.outcome,d.deliverable,d.owner,d.due,d.priority,d.status,d.metric,d.notes]
+      .map(v=>`"${String(v||'').replace(/"/g,'""')}"`);
+    csvRows.push(row.join(','));
+  });
+  const blob = new Blob([csvRows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `oakhill-tracker-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('CSV downloaded');
+});
+
+document.getElementById('resetBtn').addEventListener('click', async ()=>{
+  const ok = await showConfirm("Restore the original dataset? Any edits, new items, or deletions you've made will be lost (export a backup first if unsure).", {title:'Restore original data?', okLabel:'Restore'});
+  if(!ok) return;
+  data = DEFAULT_DATA.map(d=>({...d, id: uid()}));
+  saveData(); renderActive(); toast('Restored original data');
+});
+
+// ---- init ----
+loadData();
+renderActive();
+</script>
+</body>
+</html>
